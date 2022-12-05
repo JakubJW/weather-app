@@ -50,7 +50,7 @@ class ForecastCarousel extends React.Component {
             display = 'nie ma danych'
         
             return(
-            <div className="carousel items-center justify-between w-96 bg-slate-600 rounded-xl p-4">
+            <div className="carousel items-center justify-between w-96 h-24 bg-slate-600 rounded-xl p-4">
                 <button className="btn btn-circle btn-ghost" onClick = {this.prevSlide}>
                             <MdNavigateBefore />
                         </button> 

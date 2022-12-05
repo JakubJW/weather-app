@@ -23,95 +23,110 @@ class App extends React.Component {
     }
   }
 
+  //Funkcja pozyskująca koordynaty po wpisaniu lokalizacji
   async getCoordinates(location) {
-    fetch('http://api.openweathermap.org/geo/1.0/direct?q=' + location + '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {
-        method: 'GET'})
-    .then((res) => res.json())
-    .then((res) => {
-        fetch('https://api.openweathermap.org/data/2.5/weather?lat=' + res[0].lat + '&lon=' + res[0].lon +  '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {method: 'GET'})
-        .then((res) => res.json())
-        .then((res) => this.setState(() => ({ 
-          currentData: {
-            mainWeather: res.weather[0].main,
-            icon: res.weather[0].icon,
-            temp: (res.main.temp - 270).toFixed() + "°C",
-            feelsLike: (res.main.feels_like - 270).toFixed() + "°C",
-            pressure: res.main.pressure + "hPa",
-            humidity: res.main.humidity + "%",
-            windSpeed: res.wind.speed + "m/s",
-          }
-        }))
-      ).then(this.setState({isDataSet: true}))
-    })
+    let coordinates = []
+
+    const response = await fetch('http://api.openweathermap.org/geo/1.0/direct?q=' + location + '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {method: 'GET'})
+    const json =  await response.json()
+
+    coordinates[0] = json[0].lat
+    coordinates[1] = json[0].lon
+
+    return coordinates
   }
 
-  getForecast(location) {
-    fetch('http://api.openweathermap.org/geo/1.0/direct?q=' + location + '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {
-        method: 'GET',})
-    .then((res) => res.json())
-    .then((res) => {
-      fetch('http://api.openweathermap.org/data/2.5/forecast?lat=' + res[0].lat + '&lon=' + res[0].lon + '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {method: 'GET'})
-      .then((res) => res.json())
-      .then((res) => {
-        var day1 = []
-        var day2 = []
-        var day3 = []
-        var day4 = []
-        var day5 = []
-        for(var item in res.list) {
-          if(item <= 7) {
-            day1.push(res.list[item])
-          } else if (item > 7 && item <= 15) {
-            day2.push(res.list[item])
-          } else if (item > 15 && item <= 23) {
-            day3.push(res.list[item])
-          } else if (item > 23 && item <= 31) {
-            day4.push(res.list[item])
-          } else if (item > 31 && item <= 39) {
-            day5.push(res.list[item])
-          }
-        }
-        this.setState(() => ({
-          forecastData: {
-            day1: day1,
-            day2: day2,
-            day3: day3,
-            day4: day4,
-            day5: day5
-          }
-        }))
-      }).then(this.setState({isDataSet: true}))
-    })  
+  async weatherFromInput(location) {
+    let coords = await this.getCoordinates(location)
+    this.setCurrentData(coords)
   }
 
-  useGeolocation = () => {
+  //Funkcja pozyskująca koordynaty dzięki geolokalizacji
+  async useGeolocation() {
     if('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            fetch('https://api.openweathermap.org/data/2.5/weather?lat=' + position.coords.latitude + '&lon=' + position.coords.longitude +  '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {method: 'GET'})
-            .then((res) => res.json())
-            .then((res) => this.setState(() => ({
-              currentData: {
-                mainWeather: res.weather[0].main,
-                icon: res.weather[0].icon,
-                temp: (res.main.temp - 270).toFixed() + "°C",
-                feelsLike: (res.main.feels_like - 270).toFixed() + "°C",
-                pressure: res.main.pressure + "hPa",
-                humidity: res.main.humidity + "%",
-                windSpeed: res.wind.speed + "m/s",
-              }
-            })
-          )).then(this.setState({isDataSet: true}))
-        })
+      navigator.geolocation.getCurrentPosition((position) => {
+        this.setCurrentData([position.coords.latitude, position.coords.longitude])
+      })
     } else {
         console.log('geolocation unavailable')
     }
   }
 
+  //Funkcja pozyskująką aktualną pogodę na podstawie koordynatów
+  async getCurrentData(coordinates) {
+    const response = await fetch('https://api.openweathermap.org/data/2.5/weather?lat=' + coordinates[0] + '&lon=' + coordinates[1] +  '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {method: 'GET'})
+    const json = await response.json()
+    
+    return json
+  }
+
+  //Funkcja ustawiająca state 
+  async setCurrentData(coordinates) {
+    let weatherData
+    let forecastData
+
+    try {
+      weatherData = await this.getCurrentData(coordinates)
+      forecastData = await this.getForecast(coordinates)
+    } catch (e) {
+      console.log(e)
+      console.log("Error!")
+    }
+
+    this.setState(() => ({ 
+      currentData: {
+        mainWeather: weatherData.weather[0].main,
+        icon: weatherData.weather[0].icon,
+        temp: (weatherData.main.temp - 270).toFixed() + "°C",
+        feelsLike: (weatherData.main.feels_like - 270).toFixed() + "°C",
+        pressure: weatherData.main.pressure + "hPa",
+        humidity: weatherData.main.humidity + "%",
+        windSpeed: weatherData.wind.speed + "m/s",
+      }
+    }))
+
+      var day1 = []
+      var day2 = []
+      var day3 = []
+      var day4 = []
+      var day5 = []
+      for(var item in forecastData.list) {
+        if(item <= 7) {
+          day1.push(forecastData.list[item])
+        } else if (item > 7 && item <= 15) {
+          day2.push(forecastData.list[item])
+        } else if (item > 15 && item <= 23) {
+          day3.push(forecastData.list[item])
+        } else if (item > 23 && item <= 31) {
+          day4.push(forecastData.list[item])
+        } else if (item > 31 && item <= 39) {
+          day5.push(forecastData.list[item])
+        }
+      }
+      this.setState(() => ({
+        forecastData: {
+          day1: day1,
+          day2: day2,
+          day3: day3,
+          day4: day4,
+          day5: day5
+        }
+      }))
+      
+      this.setState({isDataSet: true})
+  }
+
+  async getForecast(coordinates) {
+      const response = await fetch('http://api.openweathermap.org/data/2.5/forecast?lat=' + coordinates[0] + '&lon=' + coordinates[1] + '&appid=93306e7b1c2d7e5a1cfcd5271a751dd0', {method: 'GET'})
+      const json = await response.json()
+
+      return json
+    }
+
+
   handleLocation = (location) => {
     this.setState({'location': location})
-    this.getCoordinates(location)
-    this.getForecast(location)
-    
+    this.weatherFromInput(location)
   }
   
   handleGeolocation = () => {
