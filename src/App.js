@@ -35,7 +35,7 @@ class App extends React.Component {
     let coordinates = [];
 
     const response = await fetch(
-      "http://api.openweathermap.org/geo/1.0/direct?q=" +
+      "https://api.openweathermap.org/geo/1.0/direct?q=" +
         location +
         "&appid=93306e7b1c2d7e5a1cfcd5271a751dd0",
       { method: "GET" }
@@ -120,7 +120,7 @@ class App extends React.Component {
 
   async getForecast(coordinates) {
     const response = await fetch(
-      "http://api.openweathermap.org/data/2.5/forecast?lat=" +
+      "https://api.openweathermap.org/data/2.5/forecast?lat=" +
         coordinates[0] +
         "&lon=" +
         coordinates[1] +
