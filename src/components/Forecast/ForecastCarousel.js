@@ -66,7 +66,7 @@ class ForecastCarousel extends React.Component {
 
     if (this.props.isDataSet) {
       const iconUrl =
-        "http://openweathermap.org/img/wn/" +
+        "https://openweathermap.org/img/wn/" +
         this.props.data[this.state.currentSlide].weather[0].icon +
         "@2x.png";
       image = <img className="contain h-16 w-16" src={iconUrl} alt="" />;

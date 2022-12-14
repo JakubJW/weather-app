@@ -8,11 +8,18 @@ module.exports = {
     "./src/components/ControlPanel.js",
     "./src/components/Forecast/ForecastCarousel.js",
   ],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       colors: {
         forecastBtn: "#243c5a",
       },
+      screens: {
+        'hover-hover': {'raw': 'hover: hover'},
+        'touch': {'raw': 'hover: none'}
+      }     
     },
   },
   plugins: [require("daisyui")],

@@ -2,6 +2,7 @@ import CurrentWeather from "./components/Current/CurrentWeather";
 import WeatherForecast from "./components/Forecast/WeatherForecast";
 import ControlPanel from "./components/ControlPanel";
 import React from "react";
+import { getCoordinates, fetchForecastWeather, fetchCurrentWeather } from './api/fetchWeather'
 
 class App extends React.Component {
   constructor() {
@@ -9,15 +10,14 @@ class App extends React.Component {
     this.state = {
       location: "",
       isDataSet: false,
-      geolocation: false,
       currentData: {
-        feelsLike: "",
-        humidity: "",
+        feelsLike: "-",
+        humidity: "-",
         icon: "",
-        mainWeather: "",
-        pressure: "",
-        temp: "",
-        windSpeed: "",
+        mainWeather: "-",
+        pressure: "-",
+        temp: "-",
+        windSpeed: "-",
       },
 
       forecastData: {
@@ -30,66 +30,27 @@ class App extends React.Component {
     };
   }
 
-  //Funkcja pozyskująca koordynaty po wpisaniu lokalizacji
-  async getCoordinates(location) {
-    let coordinates = [];
-
-    const response = await fetch(
-      "https://api.openweathermap.org/geo/1.0/direct?q=" +
-        location +
-        "&appid=93306e7b1c2d7e5a1cfcd5271a751dd0",
-      { method: "GET" }
-    );
-    const json = await response.json();
-
-    coordinates[0] = json[0].lat;
-    coordinates[1] = json[0].lon;
-
-    return coordinates;
-  }
-
-  async weatherFromInput(location) {
-    let coords = await this.getCoordinates(location);
-    this.setCurrentData(coords);
-  }
-
   //Funkcja pozyskująca koordynaty dzięki geolokalizacji
-  async useGeolocation() {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        this.setCurrentData([
-          position.coords.latitude,
-          position.coords.longitude,
-        ]);
-      });
-    } else {
-      console.log("geolocation unavailable");
-    }
+  useGeolocation() {
+    return new Promise((resolve, reject) => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          resolve({lat: position.coords.latitude, lon: position.coords.longitude})
+        });
+      } else {
+        reject(console.log("geolocation unavailable"))
+      }
+    })
   }
 
-  //Funkcja pozyskująką aktualną pogodę na podstawie koordynatów
-  async getCurrentData(coordinates) {
-    const response = await fetch(
-      "https://api.openweathermap.org/data/2.5/weather?lat=" +
-        coordinates[0] +
-        "&lon=" +
-        coordinates[1] +
-        "&appid=93306e7b1c2d7e5a1cfcd5271a751dd0",
-      { method: "GET" }
-    );
-    const json = await response.json();
 
-    return json;
-  }
-
-  //Funkcja ustawiająca state
   async setCurrentData(coordinates) {
     let weatherData;
     let forecastData;
 
     try {
-      weatherData = await this.getCurrentData(coordinates);
-      forecastData = await this.getForecast(coordinates);
+      weatherData = await fetchCurrentWeather(coordinates);
+      forecastData = await fetchForecastWeather(coordinates);
     } catch (e) {
       console.log(e);
       console.log("Error!");
@@ -118,31 +79,14 @@ class App extends React.Component {
     }));
   }
 
-  async getForecast(coordinates) {
-    const response = await fetch(
-      "https://api.openweathermap.org/data/2.5/forecast?lat=" +
-        coordinates[0] +
-        "&lon=" +
-        coordinates[1] +
-        "&appid=93306e7b1c2d7e5a1cfcd5271a751dd0",
-      { method: "GET" }
-    );
-    const json = await response.json();
-
-    return json;
-  }
-
-  handleLocation = (location) => {
+  handleLocation = async (location) => {
     this.setState({ location: location });
-    this.weatherFromInput(location);
+    this.setCurrentData(await getCoordinates(location))
   };
 
-  handleGeolocation = () => {
-    if (this.state.geolocation === false) {
-      this.setState({ geolocation: true });
-      this.useGeolocation();
-    } else {
-      this.setState({ geolocation: false });
+  handleGeolocation = async (props) => {
+    if (props === true) {
+      this.setCurrentData(await this.useGeolocation())
     }
   };
 
@@ -165,7 +109,6 @@ class App extends React.Component {
           <ControlPanel
             submitLocation={this.handleLocation}
             enableGeolocation={this.handleGeolocation}
-            ifEnabled={this.state.geolocation}
           />
           <CurrentWeather currentData={this.state.currentData} />
         </div>

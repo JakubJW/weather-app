@@ -3,21 +3,26 @@ import { TiWeatherWindy } from "react-icons/ti";
 import { CiTempHigh } from "react-icons/ci";
 import { MdOutlineWaterDrop } from "react-icons/md";
 import DataDisplay from "./DataDisplay";
+import {CiCircleQuestion} from 'react-icons/ci'
 
 class CurrentWeather extends React.Component {
   render() {
     let image;
     if (this.props.currentData.icon.length !== 0) {
       const iconUrl =
-        "http://openweathermap.org/img/wn/" +
+        "https://openweathermap.org/img/wn/" +
         this.props.currentData.icon +
         "@2x.png";
       image = <img className="contain h-28 w-28" src={iconUrl} alt="" />;
+    } else {
+      image =  <div>
+        <CiCircleQuestion className="text-8xl text-primary"/>
+      </div>
     }
 
     return (
       <div className="card flex md:w-96 flex-col justify-between gap-4">
-        <div className="flex grow flex-col justify-end gap-4">
+        <div className="flex grow flex-col justify-end gap-4"> 
           <div className="flex h-52 justify-between rounded-xl bg-base-300 shadow-lg">
             <div className="box-border flex flex-col items-center justify-center p-4 ">
               {image}
@@ -26,7 +31,7 @@ class CurrentWeather extends React.Component {
               </p>
             </div>
             <div className="my-auto box-border w-3/6 p-4 text-center">
-              <p className="text-6xl font-bold text-primary">
+              <p className="text-6xl font-bold text-primary z-10">
                 {this.props.currentData.temp}
               </p>
             </div>

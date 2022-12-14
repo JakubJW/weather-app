@@ -1,28 +1,35 @@
 import React from "react";
 import { BiCurrentLocation } from "react-icons/bi";
 
+
 class ControlPanel extends React.Component {
   constructor() {
     super();
     this.state = {
       geolocation: false,
       location: "",
+      isTouch: null
     };
-  }
+  };
 
   submitLocation = (event) => {
     event.preventDefault();
     this.props.submitLocation(this.state.location);
-  };
+  }
 
   enableGeolocation = () => {
-    this.setState({ geolocation: !this.state.geolocation });
-    this.props.enableGeolocation();
-  };
+    if(this.state.geolocation === false)
+    {
+      this.setState({geolocation: true})
+      this.props.enableGeolocation(true);
+    } else {
+      this.setState({geolocation: false})
+    }
+  }
 
   handleInput = (event) => {
     this.setState({ location: event.target.value });
-  };
+  }
 
   render() {
     return (
@@ -37,12 +44,12 @@ class ControlPanel extends React.Component {
             disabled={this.state.geolocation}
           />
 
-          <div className="tooltip " data-tip="Use current location">
+          <div className="tooltip tooltip-info" data-tip="Use current location">
             <button
               type="button"
               className={
-                "btn-outline btn-secondary btn-circle btn " +
-                (this.props.ifEnabled ? "bg-secondary" : "")
+                "btn-square btn " +
+                (this.state.geolocation ? "btn-secondary" : "btn-secondary btn-outline")
               }
               onClick={this.enableGeolocation}
             >
@@ -68,5 +75,5 @@ class ControlPanel extends React.Component {
       </div>
     );
   }
-}
-export default ControlPanel;
+
+} export default ControlPanel;
